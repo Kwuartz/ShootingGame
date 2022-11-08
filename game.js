@@ -4,13 +4,21 @@ module.exports = {
   gameLoop,
 }
 
-const { GRIDSIZE } = require("./constants")
+const {
+  GRIDSIZE,
+  BULLET_SPEED,
+  PLAYER_SPEED,
+  TICKS_PER_UPDATE,
+  UPDATES_PER_SECOND
+} = require("./constants")
 
 function createGameState() {
   return {
     players: {},
     bullets: [],
-    fps: 11,  
+    player_speed: PLAYER_SPEED,
+    bullet_speed: BULLET_SPEED,
+    tps: TICKS_PER_UPDATE * UPDATES_PER_SECOND,  
     gridSize: GRIDSIZE
   }
 }
@@ -31,16 +39,16 @@ function gameLoop(gamestate) {
     let pos = player.pos
     let direction = player.direction
     
-    pos.x += direction.x
-    pos.y += direction.y
+    pos.x += direction.x * PLAYER_SPEED
+    pos.y += direction.y  * PLAYER_SPEED
   }
 
   bullets.forEach((bullet) => {
     let pos = bullet.pos
     let direction = bullet.direction
 
-    pos.x += direction.x
-    pos.y += direction.y
+    pos.x += direction.x * BULLET_SPEED
+    pos.y += direction.y * BULLET_SPEED
   })
   return gamestate
 }

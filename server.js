@@ -18,6 +18,11 @@ app.get("/game", (req, res) => {
   res.sendFile(__dirname + "/public/game/index.html")
 })
 
+const { 
+  TICKS_PER_UPDATE,
+  UPDATES_PER_SECOND
+} = require('./constants')
+
 const {
   createGameState,
   createNewPlayer,
@@ -93,29 +98,37 @@ io.on("connection", (socket) => {
     }
   })
 
-  socket.on("shoot", (target) => {
-    const userName = multiplayerPlayers[socket.id].userName;
-    const room = multiplayerPlayers[socket.id].room;
-    
-    const game = multiplayerGames[room];
-    const player = game.players[userName]
+  socket.on("new-bullet", (target) => {
+    if (multiplayerPlayers[socket.id]) {
+      const userName = multiplayerPlayers[socket.id].userName;
+      const room = multiplayerPlayers[socket.id].room;
+      
+      
+      const game = multiplayerGames[room];
+      const player = game.players[userName]
 
-    const offset = {x: target.x - player.pos.x, y: target.y - player.pos.y}
-
-    const isPositive = Math.max(offset.x, offset.y) >= 0
-
-    if (offset.x == 0) {offset.x = 0.001}
-    if (offset.y == 0) {offset.y = 0.001}
-    
-    if (offset.x > offset.y) {
-      offset.y /= offset.x
-      if (isPositive) {offset.x = 1} else {offset.x = -1}
-    } else {
-      offset.x /= offset.y
-      if (isPositive) {offset.y = 1} else {offset.y = -1}
+      const offset = {x: target.x - player.pos.x, y: target.y - player.pos.y}
+      
+      // Finds larger offset value and uses that to calculate direction of bullet
+      if (Math.abs(offset.x) > Math.abs(offset.y)) {
+        if (offset.x < 0) {
+          offset.y /= Math.abs(offset.x)
+        } else {
+          offset.y /= offset.x
+        }
+        offset.x = (offset.x > 0) ? 1 : -1
+      } else {
+        // Weird things happen when youu divided two negative numbers
+        if (offset.y < 0) {
+          offset.x /= Math.abs(offset.y)
+        } else {
+          offset.x /= offset.y
+        }
+        offset.y = (offset.y > 0) ? 1 : -1
+      }
+      
+      game.bullets.push({player: userName, pos: {x: player.pos.x, y: player.pos.y}, direction: offset})
     }
-
-    game.bullets.push({player: userName, pos: {x: player.pos.x, y: player.pos.y}, direction: offset})
   })
 })
 
@@ -124,7 +137,7 @@ function gameInterval(room, gamestate) {
   gamestate.interval = setInterval(() => {
     gamestate = gameLoop(gamestate);
     io.to(room).emit("new-gamestate", gamestate);
-  }, 1000 / gamestate.fps);
+  }, 1000 / UPDATES_PER_SECOND);
 }
 
 httpServer.listen(port, () => {

@@ -13,14 +13,15 @@ function init() {
 
   waitingForGame = setInterval(function() {
     if (localGame) {
+      // Setting Variables
+      size = canvas.height / localGame.gridSize
+      console.log(size)
       window.requestAnimationFrame(() => {
         drawGame(localGame);
       });
       clearInterval(waitingForGame);
     }
   }, 10);
-
-  setInterval(function() {console.log(1)}, 1000)
 }
 
 function drawGame(game) {
@@ -29,9 +30,7 @@ function drawGame(game) {
   let timePassed = (Date.now() - time) / 1000;
   time = Date.now();
   let fps = Math.round(1 / timePassed);
-
-  size = canvas.height / game.gridSize;
-
+  
   context.fillStyle = "black";
   context.fillText("FPS " + fps, size * 2, size * 3);
 
@@ -40,10 +39,10 @@ function drawGame(game) {
     let pos = player.pos;
     let direction = player.direction;
 
-    pos.x += direction.x * (game.fps * timePassed);
-    pos.y += direction.y * (game.fps * timePassed);
+    pos.x += direction.x * (game.tps * game.player_speed * timePassed);
+    pos.y += direction.y * (game.tps * game.player_speed * timePassed);
 
-    drawCharacter(player.pos.x, player.pos.y);
+    drawCharacter(pos.x, pos.y);
   }
 
   game.bullets.forEach((bullet) => {
@@ -65,7 +64,10 @@ function drawCharacter(x, y) {
   context.fillStyle = "grey";
 
   // Main Body
-  context.fillRect(x * size, y * size, size, size * 2.5);
+  context.beginPath();
+  context.rect(x * size, y * size, size, size * 2.5)
+  context.fill();
+  context.stroke()
 
   // Gun
   context.beginPath();
@@ -123,12 +125,11 @@ window.addEventListener("keyup", (event) => {
 window.addEventListener("mousemove", (event) => {
   mousePosition.x = event.clientX - event.target.getBoundingClientRect().left
   mousePosition.y = event.clientY - event.target.getBoundingClientRect().top
-  console.log(mousePosition)
 })
 
 window.addEventListener("mousedown", () => {
   if (localGame && !localGame.players[userName].dead) {
-    socket.emit("shoot", {x: mousePosition.x / size, y: mousePosition.y / size})
+    socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
   }
 })
 

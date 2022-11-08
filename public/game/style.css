@@ -1,0 +1,16 @@
+body {
+  height: 100vmin;
+  width: 100vmin;
+  margin: auto;
+}
+
+#game {
+  height: 97vmin;
+  width: 97vmin;
+  border: 1vh solid #000000;
+}
+
+#canvas {
+  height: 97vmin;
+  width: 97vmin;
+}

@@ -1,7 +1,13 @@
 let canvas, context, localGame;
 
-let bgColor = "white";
+let bgColour = "#dbd7d7";
+let playerColour = "grey";
+let bulletColour = "yellow"
+
 let mousePosition = { x: 0, y: 0 };
+
+let shootInterval
+let fireRate = 3
 
 let time, size;
 
@@ -15,7 +21,6 @@ function init() {
     if (localGame) {
       // Setting Variables
       size = canvas.height / localGame.gridSize
-      console.log(size)
       window.requestAnimationFrame(() => {
         drawGame(localGame);
       });
@@ -46,7 +51,13 @@ function drawGame(game) {
   }
 
   game.bullets.forEach((bullet) => {
-    context.fillStyle = "blue";
+    let pos = bullet.pos;
+    let direction = bullet.direction;
+
+    pos.x += direction.x * (game.tps * game.bullet_speed * timePassed);
+    pos.y += direction.y * (game.tps * game.bullet_speed * timePassed);
+
+    context.fillStyle = bulletColour;
     context.fillRect(bullet.pos.x * size, bullet.pos.y * size, size, size);
   })
 
@@ -56,20 +67,32 @@ function drawGame(game) {
 }
 
 function resetBoard() {
-  context.fillStyle = "white";
+  context.fillStyle = bgColour;
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawCharacter(x, y) {
-  context.fillStyle = "grey";
+  context.fillStyle = playerColour;
 
   // Main Body
   context.beginPath();
-  context.rect(x * size, y * size, size, size * 2.5)
+  context.rect((x) * size, (y - 3) * size, size * 1.25, size * 3)
   context.fill();
   context.stroke()
 
   // Gun
+
+  // Translating to make it easier to angle the gun
+  context.translate((x + 1) * size, (y - 2) * size)
+  context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
+  
+  context.fillRect(0, 0, size * 2, size)
+
+  // Resetting orgin
+  context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
+  context.translate(-(x + 1) * size, -(y - 2) * size)
+  
+  // Mouse
   context.beginPath();
   context.moveTo(x * size, y * size)
   context.lineTo(mousePosition.x, mousePosition.y)
@@ -128,9 +151,16 @@ window.addEventListener("mousemove", (event) => {
 })
 
 window.addEventListener("mousedown", () => {
-  if (localGame && !localGame.players[userName].dead) {
-    socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
-  }
+  socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
+  shootInterval = setInterval(() => {
+    if (localGame && !localGame.players[userName].dead) {
+      socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
+    }
+  }, 1000 / fireRate)
+})
+
+window.addEventListener("mouseup", () => {
+  clearInterval(shootInterval)
 })
 
 socket.on("player-connected", (playerName) => {

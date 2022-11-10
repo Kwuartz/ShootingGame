@@ -3,6 +3,8 @@ let canvas, context, localGame;
 let bgColour = "#dbd7d7";
 let playerColour = "grey";
 let bulletColour = "yellow"
+let healthColor1 = "#29e823"
+let healthColor2 = "red"
 
 let mousePosition = { x: 0, y: 0 };
 
@@ -47,7 +49,7 @@ function drawGame(game) {
     pos.x += direction.x * (game.tps * game.player_speed * timePassed);
     pos.y += direction.y * (game.tps * game.player_speed * timePassed);
 
-    drawCharacter(pos.x, pos.y);
+    drawCharacter(pos.x, pos.y, player.health);
   }
 
   game.bullets.forEach((bullet) => {
@@ -71,7 +73,7 @@ function resetBoard() {
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawCharacter(x, y) {
+function drawCharacter(x, y, health) {
   context.fillStyle = playerColour;
 
   // Main Body
@@ -91,6 +93,15 @@ function drawCharacter(x, y) {
   // Resetting orgin
   //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
   //context.translate(-(x + 1) * size, -(y - 2) * size)
+
+  // Health Bar
+  context.fillStyle = healthColor2
+  context.fillRect((x - 1.25) * size, (y + 0.75) * size, size * 3.75, size * 0.75)
+
+  if (health > 0) {
+    context.fillStyle = healthColor1
+    context.fillRect((x - 1.25) * size, (y + 0.75) * size, size * 3.75 * (health / 100), size * 0.75)
+  }
 
   // Mouse
   context.beginPath();
@@ -123,9 +134,10 @@ function getDirection(key) {
 }
 
 window.addEventListener("keydown", (event) => {
-  if (localGame) {
-    direction = getDirection(event.key);
+  if (localGame && localGame.players[userName].health > 0) {
+    let direction = getDirection(event.key);
     if (direction) {
+      localGame.players[userName].direction = {...localGame.players[userName].direction, ...direction}
       socket.emit("change-direction", direction, "multiplayer");
     }
   }
@@ -145,15 +157,24 @@ window.addEventListener("keyup", (event) => {
   }
 });
 
+window.addEventListener("blur", () => {
+  if (localGame && localGame.players[userName].health > 0) {
+    localGame.players[userName].direction = {...localGame.players[userName].direction, ...direction}
+    socket.emit("change-direction", { x: 0, y: 0 }, "multiplayer");
+  }
+});
+
+
+
 window.addEventListener("mousemove", (event) => {
-  mousePosition.x = event.clientX - canvas.getBoundingClientRect().left
-  mousePosition.y = event.clientY - canvas.getBoundingClientRect().top
+  mousePosition.x = event.clientX - event.target.getBoundingClientRect().left
+  mousePosition.y = event.clientY - event.target.getBoundingClientRect().top
 })
 
 window.addEventListener("mousedown", () => {
   socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
   shootInterval = setInterval(() => {
-    if (localGame && !localGame.players[userName].dead) {
+    if (localGame && !localGame.players[userName].health > 0) {
       socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
     }
   }, 1000 / fireRate)

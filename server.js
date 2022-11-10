@@ -135,7 +135,11 @@ io.on("connection", (socket) => {
 function gameInterval(room, gamestate) {
   // Game interval
   gamestate.interval = setInterval(() => {
-    gamestate = gameLoop(gamestate);
+    for (i in [...Array(TICKS_PER_UPDATE).keys()]) {
+      setTimeout(() => {
+        gamestate = gameLoop(gamestate);
+      }, (1000 / (UPDATES_PER_SECOND * TICKS_PER_UPDATE)) * (parseInt(i) + 1)) 
+    }
     io.to(room).emit("new-gamestate", gamestate);
   }, 1000 / UPDATES_PER_SECOND);
 }

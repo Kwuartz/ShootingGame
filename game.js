@@ -27,18 +27,19 @@ function createNewPlayer() {
   return {
     pos: {x: 10, y: 10},
     direction: {x: 0, y: 0},
-    dead: false
+    health: 100
   }
 }
 
 function gameLoop(gamestate) {
   let players = gamestate.players
   let bullets = gamestate.bullets
+  
   for (playerName in players) {
     let player = players[playerName]
     let pos = player.pos
     let direction = player.direction
-    
+
     pos.x += direction.x * PLAYER_SPEED
     pos.y += direction.y  * PLAYER_SPEED
   }
@@ -58,10 +59,25 @@ function gameLoop(gamestate) {
 
     bullets.forEach((bullet) => {
       let bulletPos = bullet.pos
-      if (pos.x == bulletPos.x && pos.y) {
-        
+      if (
+        bulletPos.x > pos.x && bulletPos.x < pos.x + 1 &&
+        bulletPos.y < pos.y && bulletPos.y > pos.y - 3 &&
+        playerName != bullet.player
+        ) {
+        player.health -= 20
+        bullets.splice(bullets.indexOf(bullet), 1)
       }
-    }) 
+
+      if (bullet.pos.x > GRIDSIZE || bullet.pos.x < 0 || bullet.pos.y > GRIDSIZE || bullet.pos.y < 0) {
+        bullets.splice(bullets.indexOf(bullet), 1)
+      }
+    })
+
+    if (pos.x < 0) {pos.x = GRIDSIZE - 1}
+    else if (pos.x > GRIDSIZE) {pos.x = 0}
+
+    if (pos.y < 0) {pos.y = GRIDSIZE - 1}
+    else if (pos.y > GRIDSIZE) {pos.y = 0}
   }
 
   return gamestate

@@ -127,7 +127,7 @@ io.on("connection", (socket) => {
         offset.y = (offset.y > 0) ? 1 : -1
       }
       
-      game.bullets.push({player: userName, pos: {x: player.pos.x, y: player.pos.y}, direction: offset})
+      game.bullets.push({player: userName, pos: {x: player.pos.x, y: player.pos.y - 2}, direction: offset})
     }
   })
 })

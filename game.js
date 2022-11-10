@@ -50,5 +50,19 @@ function gameLoop(gamestate) {
     pos.x += direction.x * BULLET_SPEED
     pos.y += direction.y * BULLET_SPEED
   })
+
+  // Game checks
+  for (playerName in players) {
+    let player = players[playerName]
+    let pos = player.pos
+
+    bullets.forEach((bullet) => {
+      let bulletPos = bullet.pos
+      if (pos.x == bulletPos.x && pos.y) {
+        
+      }
+    }) 
+  }
+
   return gamestate
 }

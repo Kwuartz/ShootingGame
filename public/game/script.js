@@ -7,7 +7,7 @@ let bulletColour = "yellow"
 let mousePosition = { x: 0, y: 0 };
 
 let shootInterval
-let fireRate = 3
+let fireRate = 6
 
 let time, size;
 
@@ -35,7 +35,7 @@ function drawGame(game) {
   let timePassed = (Date.now() - time) / 1000;
   time = Date.now();
   let fps = Math.round(1 / timePassed);
-  
+
   context.fillStyle = "black";
   context.fillText("FPS " + fps, size * 2, size * 3);
 
@@ -83,18 +83,18 @@ function drawCharacter(x, y) {
   // Gun
 
   // Translating to make it easier to angle the gun
-  context.translate((x + 1) * size, (y - 2) * size)
-  context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
-  
-  context.fillRect(0, 0, size * 2, size)
+  //context.translate((x + 1) * size, (y - 2) * size)
+  //context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
+
+  context.fillRect((x + 1) * size, (y - 2) * size, size * 2, size)
 
   // Resetting orgin
-  context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
-  context.translate(-(x + 1) * size, -(y - 2) * size)
-  
+  //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
+  //context.translate(-(x + 1) * size, -(y - 2) * size)
+
   // Mouse
   context.beginPath();
-  context.moveTo(x * size, y * size)
+  context.moveTo((x + 3) * size, (y - 1.5) * size)
   context.lineTo(mousePosition.x, mousePosition.y)
   context.stroke()
 }
@@ -146,15 +146,15 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("mousemove", (event) => {
-  mousePosition.x = event.clientX - event.target.getBoundingClientRect().left
-  mousePosition.y = event.clientY - event.target.getBoundingClientRect().top
+  mousePosition.x = event.clientX - canvas.getBoundingClientRect().left
+  mousePosition.y = event.clientY - canvas.getBoundingClientRect().top
 })
 
 window.addEventListener("mousedown", () => {
-  socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
+  socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
   shootInterval = setInterval(() => {
     if (localGame && !localGame.players[userName].dead) {
-      socket.emit("new-bullet", {x: mousePosition.x / size, y: mousePosition.y / size})
+      socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
     }
   }, 1000 / fireRate)
 })

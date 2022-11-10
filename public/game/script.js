@@ -174,7 +174,7 @@ window.addEventListener("mousemove", (event) => {
 window.addEventListener("mousedown", () => {
   socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
   shootInterval = setInterval(() => {
-    if (localGame && !localGame.players[userName].health > 0) {
+    if (localGame && localGame.players[userName].health > 0) {
       socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
     }
   }, 1000 / fireRate)

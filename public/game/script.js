@@ -6,6 +6,9 @@ let bulletColour = "yellow"
 let healthColor1 = "#29e823"
 let healthColor2 = "red"
 
+let gun = new Image()
+gun.src = "gun.png"
+
 let mousePosition = { x: 0, y: 0 };
 
 let shootInterval
@@ -43,11 +46,11 @@ function drawGame(game) {
 
   for (playerName in game.players) {
     player = game.players[playerName];
-    let pos = player.pos;
+    let pos = {x: player.pos.x - player.direction.x};
     let direction = player.direction;
 
-    pos.x += direction.x * (game.tps * game.player_speed * timePassed);
-    pos.y += direction.y * (game.tps * game.player_speed * timePassed);
+    pos.x += (direction.x * (game.tps * game.player_speed * timePassed));
+    pos.y += (direction.y * (game.tps * game.player_speed * timePassed));
 
     drawCharacter(pos.x, pos.y, player.health);
   }
@@ -88,7 +91,7 @@ function drawCharacter(x, y, health) {
   //context.translate((x + 1) * size, (y - 2) * size)
   //context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
 
-  context.fillRect((x + 1) * size, (y - 2) * size, size * 2, size)
+  ctx.drawImage(gun, (x + 1) * size, (y - 2) * size, gun.height * (size / gun.width), size)
 
   // Resetting orgin
   //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
@@ -137,7 +140,6 @@ window.addEventListener("keydown", (event) => {
   if (localGame && localGame.players[userName].health > 0) {
     let direction = getDirection(event.key);
     if (direction) {
-      localGame.players[userName].direction = {...localGame.players[userName].direction, ...direction}
       socket.emit("change-direction", direction, "multiplayer");
     }
   }

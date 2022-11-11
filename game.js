@@ -73,11 +73,11 @@ function gameLoop(gamestate) {
       }
     })
 
-    if (pos.x < 0) {pos.x = GRIDSIZE - 1}
-    else if (pos.x > GRIDSIZE) {pos.x = 0}
+    if (pos.x < 0) {pos.x = GRIDSIZE}
+    else if (pos.x > GRIDSIZE) {pos.x = -1}
 
-    if (pos.y < 0) {pos.y = GRIDSIZE - 1}
-    else if (pos.y > GRIDSIZE) {pos.y = 0}
+    if (pos.y < 0) {pos.y = GRIDSIZE}
+    else if (pos.y > GRIDSIZE) {pos.y = -1}
   }
 
   return gamestate

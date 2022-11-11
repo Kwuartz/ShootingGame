@@ -7,7 +7,7 @@ let healthColor1 = "#29e823"
 let healthColor2 = "red"
 
 let gun = new Image()
-gun.src = "gun.png"
+gun.src = "./gun.png"
 
 let mousePosition = { x: 0, y: 0 };
 
@@ -91,7 +91,7 @@ function drawCharacter(x, y, health) {
   //context.translate((x + 1) * size, (y - 2) * size)
   //context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
 
-  ctx.drawImage(gun, (x + 1) * size, (y - 2) * size, gun.height * (size / gun.width), size)
+  //ctx.drawImage(gun, (x + 1) * size, (y - 2) * size, gun.height * (size / gun.width), size)
 
   // Resetting orgin
   //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);

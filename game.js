@@ -60,8 +60,8 @@ function gameLoop(gamestate) {
     bullets.forEach((bullet) => {
       let bulletPos = bullet.pos
       if (
-        bulletPos.x > pos.x && bulletPos.x < pos.x + 1 &&
-        bulletPos.y < pos.y && bulletPos.y > pos.y - 3 &&
+        bulletPos.x > pos.x && bulletPos.x < pos.x + 5.5 &&
+        bulletPos.y < pos.y && bulletPos.y > pos.y - 5 &&
         playerName != bullet.player
         ) {
         player.health -= 20

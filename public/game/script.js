@@ -1,19 +1,24 @@
 let canvas, context, localGame;
 
-let bgColour = "#dbd7d7";
-let playerColour = "grey";
-let bulletColour = "yellow"
+let bgColour = "white";
+
+let bulletColour = "#ffea00"
+
 let healthColor1 = "#29e823"
 let healthColor2 = "red"
 
 let playerIdle = new Image()
-let playerMove1 = new Image()
-let playerMove2 = new Image()
-
 playerIdle.src = "../assets/sprites/playerIdle.png"
-playerMove1.src = "../assets/sprites/playerMove1.png"
-playerMove2.src = "../assets/sprites/playerMove2.png"
 
+let playerAnims = [new Image(), new Image()]
+
+playerAnims[0].src = "../assets/sprites/playerMove1.png"
+playerAnims[1].src = "../assets/sprites/playerMove2.png"
+
+let animStates = {}
+let framesPerCycle = 10
+
+let playerHeight, playerWidth
 
 let mousePosition = { x: 0, y: 0 };
 
@@ -29,6 +34,9 @@ function init() {
     if (localGame) {
       // Setting Variables
       size = canvas.height / localGame.gridSize
+      playerHeight = playerIdle.height * (size * 6.5 / playerIdle.width)
+      playerWidth = size * 5.5
+
       window.requestAnimationFrame(() => {
         drawGame(localGame);
       });
@@ -48,7 +56,7 @@ function drawGame(game) {
   context.fillText("FPS " + fps, size * 2, size * 3);
 
   for (playerName in game.players) {
-    player = game.players[playerName];
+    let player = game.players[playerName];
     let pos = player.pos
     let direction = player.direction;
 
@@ -56,7 +64,7 @@ function drawGame(game) {
     pos.y += (direction.y * (game.tps * game.player_speed * timePassed));
 
     // Taking away direction so it looks like player is moving to next pos
-    drawCharacter(pos.x - player.direction.x, pos.y - player.direction.y, player.health);
+    drawCharacter(player, animStates[playerName]);
   }
 
   game.bullets.forEach((bullet) => {
@@ -67,7 +75,7 @@ function drawGame(game) {
     pos.y += direction.y * (game.tps * game.bullet_speed * timePassed);
 
     context.fillStyle = bulletColour;
-    context.fillRect(bullet.pos.x * size, bullet.pos.y * size, size, size);
+    context.fillRect(bullet.pos.x * size, bullet.pos.y * size, size * 1.25, size / 2);
   })
 
   window.requestAnimationFrame(() => {
@@ -80,44 +88,60 @@ function resetBoard() {
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawCharacter(x, y, health) {
-  context.fillStyle = playerColour;
+function drawCharacter(player, animState) {
+  let x = player.pos.x
+  let y = player.pos.y
+  let health = player.health
+  let direction = player.direction
 
   // Player
-  context.drawImage(playerIdle, x * size, (y - 6) * size, playerIdle.height * (size * 6.5 / playerIdle.width), size * 5.5)
+  context.save()
 
-  /*
-  // Main Body
-  context.beginPath();
-  context.rect((x) * size, (y - 3) * size, size * 1.25, size * 3)
-  context.fill();
-  context.stroke()
+  // Flips the player
+  if (animState.lastDirection == -1) {
+    context.scale(-1, 1);
+    x += playerWidth / size
+    x *= -0.97
+  }
 
-  // Gun
+  if (direction.x == 0) {
+    context.drawImage(playerIdle, x * size, (y - 6) * size, playerHeight, playerWidth)
+    
+    // Reset animation
+    animState.currentAnimFrame = 0
+    animState.currentAnimCycle = 0
+  } else {
+    animState.lastDirection = direction.x
 
-  // Translating to make it easier to angle the gun
-  //context.translate((x + 1) * size, (y - 2) * size)
-  //context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
-
-  // context.drawImage(gun, (x + 1) * size, (y - 3) * size, gun.height * (size * 4 / gun.width), size * 4)
-
-  // Resetting orgin
-  //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
-  //context.translate(-(x + 1) * size, -(y - 2) * size)
-  */
+    // Cycles through animations
+    context.drawImage(playerAnims[animState.currentAnimCycle], x * size, (y - 6) * size, playerHeight, playerWidth)
+    animState.currentAnimFrame++
+    if (animState.currentAnimFrame >= framesPerCycle) {
+      if (animState.currentAnimCycle == playerAnims.length - 1) {
+        animState.currentAnimCycle = 0
+      } else {
+        animState.currentAnimCycle++
+      }
+      animState.currentAnimFrame = 0
+    }
+  }
+  
+  // Need to restore canvas state just in case the player was flipped
+  x = player.pos.x
+  context.restore()
 
   // Health Bar
   context.fillStyle = healthColor2
-  context.fillRect((x + 0.5) * size, (y) * size, size * 4, size * 0.7)
+  context.fillRect((x + 0.5) * size, (y - 7.5) * size, size * 4, size)
 
   if (health > 0) {
     context.fillStyle = healthColor1
-    context.fillRect((x + 0.5) * size, (y) * size, size * 4 * (health / 100), size * 0.75)
+    context.fillRect((x + 0.5) * size, (y - 7.5) * size, size * 4 * (health / 100), size)
   }
 
   // Mouse
   context.beginPath();
-  context.moveTo((x + 3) * size, (y - 1.5) * size)
+  context.moveTo((x + 5.5) * size, (y - 4) * size)
   context.lineTo(mousePosition.x, mousePosition.y)
   context.stroke()
 }
@@ -182,7 +206,7 @@ window.addEventListener("mousemove", (event) => {
 })
 
 window.addEventListener("mousedown", () => {
-  socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
+  socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size)})
 })
 
 socket.on("player-connected", (playerName) => {
@@ -191,8 +215,22 @@ socket.on("player-connected", (playerName) => {
   init();
 });
 
+function updateAnimStates(currentState, players) {
+  players.forEach(playerName => {
+    if (!Object.keys(currentState).includes(playerName)) {
+      currentState[playerName] = {
+        currentAnimCycle: 0,
+        currentAnimFrame: 0,
+        lastDirection: 1,
+      }
+    }
+  })
+  return currentState
+}
+
 socket.on("new-gamestate", (gamestate) => {
   localGame = gamestate;
+  animStates = updateAnimStates(animStates, Object.keys(localGame.players));
 });
 
 // Daniyal's game is the best and I'm part of it. :) - Walter Wood

@@ -90,11 +90,13 @@ io.on("connection", (socket) => {
 
 
   socket.on("change-direction", (direction) => {
-    const userName = multiplayerPlayers[socket.id].userName;
-    const room = multiplayerPlayers[socket.id].room
-    if (multiplayerGames[room].players) {
-      let player = multiplayerGames[room].players[userName];
-      player.direction = {...player.direction, ...direction};
+    if (multiplayerPlayers[socket.id]) {
+      const userName = multiplayerPlayers[socket.id].userName;
+      const room = multiplayerPlayers[socket.id].room
+      if (multiplayerGames[room].players) {
+        let player = multiplayerGames[room].players[userName];
+        player.direction = {...player.direction, ...direction};
+      }
     }
   })
 
@@ -107,7 +109,7 @@ io.on("connection", (socket) => {
       const game = multiplayerGames[room];
       const player = game.players[userName]
 
-      const offset = {x: target.x - player.pos.x, y: target.y - player.pos.y}
+      const offset = {x: target.x - (player.pos.x + 4), y: target.y - (player.pos.y - 4)}
       
       // Finds larger offset value and uses that to calculate direction of bullet
       if (Math.abs(offset.x) > Math.abs(offset.y)) {

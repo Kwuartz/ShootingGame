@@ -6,13 +6,16 @@ let bulletColour = "yellow"
 let healthColor1 = "#29e823"
 let healthColor2 = "red"
 
-let gun = new Image()
-gun.src = "./gun.png"
+let playerIdle = new Image()
+let playerMove1 = new Image()
+let playerMove2 = new Image()
+
+playerIdle.src = "../assets/sprites/playerIdle.png"
+playerMove1.src = "../assets/sprites/playerMove1.png"
+playerMove2.src = "../assets/sprites/playerMove2.png"
+
 
 let mousePosition = { x: 0, y: 0 };
-
-let shootInterval
-let fireRate = 6
 
 let time, size;
 
@@ -46,13 +49,14 @@ function drawGame(game) {
 
   for (playerName in game.players) {
     player = game.players[playerName];
-    let pos = {x: player.pos.x - player.direction.x};
+    let pos = player.pos
     let direction = player.direction;
 
     pos.x += (direction.x * (game.tps * game.player_speed * timePassed));
     pos.y += (direction.y * (game.tps * game.player_speed * timePassed));
 
-    drawCharacter(pos.x, pos.y, player.health);
+    // Taking away direction so it looks like player is moving to next pos
+    drawCharacter(pos.x - player.direction.x, pos.y - player.direction.y, player.health);
   }
 
   game.bullets.forEach((bullet) => {
@@ -79,6 +83,10 @@ function resetBoard() {
 function drawCharacter(x, y, health) {
   context.fillStyle = playerColour;
 
+  // Player
+  context.drawImage(playerIdle, x * size, (y - 6) * size, playerIdle.height * (size * 6.5 / playerIdle.width), size * 5.5)
+
+  /*
   // Main Body
   context.beginPath();
   context.rect((x) * size, (y - 3) * size, size * 1.25, size * 3)
@@ -91,19 +99,20 @@ function drawCharacter(x, y, health) {
   //context.translate((x + 1) * size, (y - 2) * size)
   //context.rotate(Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
 
-  //ctx.drawImage(gun, (x + 1) * size, (y - 2) * size, gun.height * (size / gun.width), size)
+  // context.drawImage(gun, (x + 1) * size, (y - 3) * size, gun.height * (size * 4 / gun.width), size * 4)
 
   // Resetting orgin
   //context.rotate(-Math.atan2(y - mousePosition.y * size, x - mousePosition.x * size) * 180 / Math.PI);
   //context.translate(-(x + 1) * size, -(y - 2) * size)
+  */
 
   // Health Bar
   context.fillStyle = healthColor2
-  context.fillRect((x - 1.25) * size, (y + 0.75) * size, size * 3.75, size * 0.75)
+  context.fillRect((x + 0.5) * size, (y) * size, size * 4, size * 0.7)
 
   if (health > 0) {
     context.fillStyle = healthColor1
-    context.fillRect((x - 1.25) * size, (y + 0.75) * size, size * 3.75 * (health / 100), size * 0.75)
+    context.fillRect((x + 0.5) * size, (y) * size, size * 4 * (health / 100), size * 0.75)
   }
 
   // Mouse
@@ -161,7 +170,6 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("blur", () => {
   if (localGame && localGame.players[userName].health > 0) {
-    localGame.players[userName].direction = {...localGame.players[userName].direction, ...direction}
     socket.emit("change-direction", { x: 0, y: 0 }, "multiplayer");
   }
 });
@@ -175,15 +183,6 @@ window.addEventListener("mousemove", (event) => {
 
 window.addEventListener("mousedown", () => {
   socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
-  shootInterval = setInterval(() => {
-    if (localGame && localGame.players[userName].health > 0) {
-      socket.emit("new-bullet", { x: mousePosition.x / size, y: (mousePosition.y / size) + 1.5 })
-    }
-  }, 1000 / fireRate)
-})
-
-window.addEventListener("mouseup", () => {
-  clearInterval(shootInterval)
 })
 
 socket.on("player-connected", (playerName) => {

@@ -16,11 +16,14 @@ app.get("/", (req, res) => {
 
 app.get("/game", (req, res) => {
   res.sendFile(__dirname + "/public/game/index.html")
+  var ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
+  console.log(ip);
 })
 
 const { 
   TICKS_PER_UPDATE,
-  UPDATES_PER_SECOND
+  UPDATES_PER_SECOND,
+  JUMP_POWER
 } = require('./constants')
 
 const {
@@ -96,6 +99,16 @@ io.on("connection", (socket) => {
       if (multiplayerGames[room]) {
         let player = multiplayerGames[room].players[userName];
         player.direction = {...player.direction, ...direction};
+      }
+    }
+  })
+
+  socket.on("jump", () => {
+    if (multiplayerPlayers[socket.id]) {
+      const userName = multiplayerPlayers[socket.id].userName;
+      const room = multiplayerPlayers[socket.id].room
+      if (multiplayerGames[room] && multiplayerGames[room].players[userName] && !multiplayerGames[room].players[userName].falling) {
+        multiplayerGames[room].players[userName].jump_power = JUMP_POWER
       }
     }
   })

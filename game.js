@@ -11,7 +11,7 @@ const {
   TICKS_PER_UPDATE,
   UPDATES_PER_SECOND,
   PLAYER_SIZE,
-  FALL_SPEED,
+  GRAVITY
 } = require("./constants");
 
 function createGameState() {
@@ -25,6 +25,7 @@ function createGameState() {
     bullet_speed: BULLET_SPEED,
     player_size: PLAYER_SIZE,
     tps: TICKS_PER_UPDATE * UPDATES_PER_SECOND,
+    gravity: GRAVITY,
     gridSize: GRIDSIZE,
   };
 }
@@ -35,7 +36,7 @@ function createNewPlayer() {
     direction: { x: 0, y: 0 },
     health: 100,
     falling: true,
-    jumping: false,
+    jump_power: 0,
   };
 }
 
@@ -62,18 +63,11 @@ function gameLoop(gamestate) {
     pos.y += direction.y * BULLET_SPEED;
   });
 
-  platforms.forEach((platform) => {
-    let startX = platform.startX;
-    let endX = platform.endX;
-    let startY = platform.startY;
-  });
-
   // Game checks
   for (playerName in players) {
     let player = players[playerName];
     let pos = player.pos;
     let direction = player.direction;
-    let falling = player.falling;
 
     // Bullet hit checks
     bullets.forEach((bullet) => {
@@ -108,17 +102,18 @@ function gameLoop(gamestate) {
     });
 
     // Platform checks
-    falling = true;
+    player.falling = true;
 
     platforms.forEach((platform) => {
       if (
-        falling &&
+        player.falling &&
         pos.x + PLAYER_SIZE.x / 2 > platform.startX &&
         pos.x + PLAYER_SIZE.x / 2 < platform.endX &&
         pos.y > platform.startY &&
-        pos.y < platform.startY + (platform.endY - platform.startY)
+        pos.y < platform.startY + PLAYER_SPEED * GRAVITY * 7
       ) {
-        falling = false;
+        player.falling = false;
+        direction.y = 0
       }
     });
 
@@ -131,10 +126,19 @@ function gameLoop(gamestate) {
       direction.x = 0;
     }
 
-    if (falling) {
-      direction.y = FALL_SPEED;
-    } else {
-      direction.y = 0;
+    if (player.jump_power > 0) {
+      direction.y = -player.jump_power
+      player.jump_power -= (GRAVITY / player.jump_power)
+    } else if (player.falling) {
+      player.jump_power = 0
+      if (player.direction.y < GRAVITY) {
+        player.direction.y = GRAVITY
+      } else {
+        player.direction.y += (GRAVITY / player.direction.y)
+        if (player.direction.y > GRAVITY * 7) {
+          player.direction.y = GRAVITY * 7
+        }
+      }
     }
   }
 

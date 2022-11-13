@@ -62,7 +62,6 @@ function drawGame(game) {
     pos.x += direction.x * (game.tps * game.player_speed * timePassed);
     pos.y += direction.y * (game.tps * game.player_speed * timePassed);
 
-    // Taking away direction so it looks like player is moving to next pos
     drawCharacter(player, animStates[playerName]);
   }
 
@@ -175,12 +174,6 @@ function drawCharacter(player, animState) {
       size
     );
   }
-
-  // Mouse
-  context.beginPath();
-  context.moveTo(x * size, y * size);
-  context.lineTo(mousePosition.x, mousePosition.y);
-  context.stroke();
 }
 
 function getDirection(key) {
@@ -193,6 +186,8 @@ function getDirection(key) {
       return (direction = { x: -1 });
     case "a":
       return (direction = { x: -1 });
+    case " ":
+      return (direction = { y: 1 })
     default:
       return false;
   }
@@ -201,8 +196,10 @@ function getDirection(key) {
 window.addEventListener("keydown", (event) => {
   if (localGame && localGame.players[userName].health > 0) {
     let direction = getDirection(event.key);
-    if (direction) {
-      socket.emit("change-direction", direction, "multiplayer");
+    if (direction.x) {
+      socket.emit("change-direction", direction);
+    } else if (direction.y) {
+      socket.emit("jump")
     }
   }
 });

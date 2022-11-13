@@ -12,12 +12,12 @@ app.use(express.static(__dirname + '/public/'))
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/main/index.html")
+  var ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
+  console.log(ip);
 })
 
 app.get("/game", (req, res) => {
   res.sendFile(__dirname + "/public/game/index.html")
-  var ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
-  console.log(ip);
 })
 
 const { 

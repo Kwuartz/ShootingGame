@@ -93,7 +93,7 @@ io.on("connection", (socket) => {
     if (multiplayerPlayers[socket.id]) {
       const userName = multiplayerPlayers[socket.id].userName;
       const room = multiplayerPlayers[socket.id].room
-      if (multiplayerGames[room].players) {
+      if (multiplayerGames[room]) {
         let player = multiplayerGames[room].players[userName];
         player.direction = {...player.direction, ...direction};
       }

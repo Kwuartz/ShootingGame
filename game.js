@@ -32,7 +32,7 @@ function createGameState() {
 
 function createNewPlayer() {
   return {
-    pos: { x: 10, y: 80 },
+    pos: { x: 10, y: 60 },
     direction: { x: 0, y: 0 },
     health: 100,
     falling: true,
@@ -104,6 +104,10 @@ function gameLoop(gamestate) {
     // Platform checks
     player.falling = true;
 
+    if (player.jump_power) {
+      player.falling = false
+    }
+
     platforms.forEach((platform) => {
       if (
         player.falling &&
@@ -113,7 +117,7 @@ function gameLoop(gamestate) {
         pos.y < platform.startY + PLAYER_SPEED * GRAVITY * 7
       ) {
         player.falling = false;
-        direction.y = 0
+        player.direction.y = 0
       }
     });
 
@@ -129,8 +133,10 @@ function gameLoop(gamestate) {
     if (player.jump_power > 0) {
       direction.y = -player.jump_power
       player.jump_power -= (GRAVITY / player.jump_power)
+      if (player.jump_power < 0) {
+        player.jump_power = 0
+      }
     } else if (player.falling) {
-      player.jump_power = 0
       if (player.direction.y < GRAVITY) {
         player.direction.y = GRAVITY
       } else {
@@ -139,6 +145,8 @@ function gameLoop(gamestate) {
           player.direction.y = GRAVITY * 7
         }
       }
+    } else {
+      direction.y = 0
     }
   }
 

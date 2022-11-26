@@ -19,7 +19,8 @@ function createGameState() {
     players: {},
     bullets: [],
     platforms: [
-      { startX: 10, startY: GRIDSIZE - 10, endX: GRIDSIZE - 10, endY: GRIDSIZE },
+      { startX: 0, startY: GRIDSIZE - 7.5, endX: GRIDSIZE, endY: GRIDSIZE },
+      { startX: 5, startY: GRIDSIZE - 20, endX: 15, endY: GRIDSIZE - 18},
     ],
     player_speed: PLAYER_SPEED,
     bullet_speed: BULLET_SPEED,
@@ -139,11 +140,8 @@ function gameLoop(gamestate) {
     } else if (player.falling) {
       if (player.direction.y < GRAVITY) {
         player.direction.y = GRAVITY
-      } else {
-        player.direction.y += (GRAVITY / player.direction.y)
-        if (player.direction.y > GRAVITY * 7) {
-          player.direction.y = GRAVITY * 7
-        }
+      } else if (player.direction.y < GRAVITY * 3) {
+        player.direction.y += GRAVITY / 10
       }
     } else {
       direction.y = 0

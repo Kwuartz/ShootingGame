@@ -62,38 +62,6 @@ function drawGame(game) {
     pos.x += direction.x * (game.tps * game.player_speed * timePassed);
     pos.y += direction.y * (game.tps * game.player_speed * timePassed);
 
-    // Predicting physics
-    if (player.jump_power > 0) {
-      direction.y = -player.jump_power
-      player.jump_power -= (game.gravity / player.jump_power) * timePassed
-      if (player.jump_power < 0) {
-        player.jump_power = 0
-      }
-    } else if (player.falling) {
-      if (player.direction.y < game.gravity) {
-        player.direction.y = game.gravity
-      } else {
-        player.direction.y += (game.gravity / player.direction.y) * timePassed
-        if (player.direction.y > game.gravity * 7) {
-          player.direction.y = game.gravity * 7
-        }
-      }
-    } else {
-      direction.y = 0
-    }
-
-    game.platforms.forEach((platform) => {
-      if (
-        player.falling &&
-        pos.x + player_size.x / 2 > platform.startX &&
-        pos.x + player_size.x / 2 < platform.endX &&
-        pos.y > platform.startY &&
-        pos.y < platform.startY + game.player_speed * game.gravity * 7
-      ) {
-        player.direction.y = 0
-      }
-    });
-
     drawCharacter(player, animStates[playerName]);
   }
 
